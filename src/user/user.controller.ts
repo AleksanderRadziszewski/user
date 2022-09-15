@@ -4,6 +4,7 @@ import {
   Get,
   NotFoundException,
   Param,
+  ParseIntPipe,
   Post,
   Query,
 } from '@nestjs/common';
@@ -13,6 +14,7 @@ import {
   ApiTags,
   ApiQuery,
   ApiNotFoundResponse,
+  ApiBadRequestResponse,
 } from '@nestjs/swagger';
 import { User } from 'src/entities/user.entity';
 import { CreateUserDto } from './dto/user.dto';
@@ -25,21 +27,24 @@ export class UserController {
   @ApiOkResponse({ type: User, isArray: true, description: 'users found' })
   @ApiNotFoundResponse()
   @ApiQuery({ name: 'name', required: false })
+  @ApiBadRequestResponse()
   @Get()
   getUsers(@Query('name') name: string): User[] {
     return this.userService.findAll(name);
   }
   @ApiOkResponse({ type: User, description: 'user found ' })
   @ApiNotFoundResponse()
+  @ApiBadRequestResponse()
   @Get(':id')
-  getUserById(@Param('id') id: string): User {
-    const user = this.userService.findById(Number(id));
+  getUserById(@Param('id', ParseIntPipe) id: number): User {
+    const user = this.userService.findById(id);
     if (!user) {
       throw new NotFoundException();
     }
     return user;
   }
   @ApiCreatedResponse({ type: User, description: 'user created' })
+  @ApiBadRequestResponse()
   @Post()
   createUser(@Body() body: CreateUserDto): User {
     return this.userService.createUser(body);
